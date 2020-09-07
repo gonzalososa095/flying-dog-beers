@@ -2,62 +2,80 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import plotly.graph_objs as go
-
-########### Define your variables
-beers=['Chesapeake Stout', 'Snake Dog IPA', 'Imperial Porter', 'Double Dog IPA']
-ibu_values=[35, 60, 85, 75]
-abv_values=[5.4, 7.1, 9.2, 4.3]
-color1='lightblue'
-color2='darkgreen'
-mytitle='Beer Comparison'
-tabtitle='beer!'
-myheading='Flying Dog Beers'
-label1='IBU'
-label2='ABV'
-githublink='https://github.com/austinlasseter/flying-dog-beers'
-sourceurl='https://www.flyingdog.com/beers/'
-
-########### Set up the chart
-bitterness = go.Bar(
-    x=beers,
-    y=ibu_values,
-    name=label1,
-    marker={'color':color1}
-)
-alcohol = go.Bar(
-    x=beers,
-    y=abv_values,
-    name=label2,
-    marker={'color':color2}
-)
-
-beer_data = [bitterness, alcohol]
-beer_layout = go.Layout(
-    barmode='group',
-    title = mytitle
-)
-
-beer_fig = go.Figure(data=beer_data, layout=beer_layout)
+import pandas as pd
 
 
-########### Initiate the app
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+df = pd.read_csv('data.csv')
+
+external_stylesheets = ['https://codepen.io/qpi65/pen/LYNOXJO.css']
+
+app = dash.Dash(__name__,external_stylesheets=external_stylesheets)
 server = app.server
-app.title=tabtitle
 
-########### Set up the layout
-app.layout = html.Div(children=[
-    html.H1(myheading),
-    dcc.Graph(
-        id='flyingdog',
-        figure=beer_fig
-    ),
-    html.A('Code on Github', href=githublink),
+
+def build_banner():
+    return html.Div(
+        id="banner",
+        className="banner",
+        children=[
+            html.Div(
+                id="banner-text",
+                children=[
+                    html.H5("Gonzalo Sosa"),
+                    html.H6("Sound Engineer"),
+                ],
+            ),
+            html.Div(
+                id="banner-logo",
+                children=[
+                    html.Button(
+                        id="contacto", children="Contacto", n_clicks=0
+                    ),
+                    html.Img(id="logo", src=app.get_asset_url("dash-logo-new.png")),
+                ],
+            ),
+        ],
+    )
+
+app.layout = html.Div([
+    build_banner(),
+    html.H1("Directividad parlante B&D 6MD38", style={'text-align': 'center'}),
+
+    daq.Gauge(
+        id='knob',
+        label="Angulo de incidencia",
+        color="#42ADDC",
+             value = 0,
+             min = -135,
+             max= 135,
+             scale={'start':-135,'labelInterval':45,'interval':1},
+            theme = 'Light',
+    showCurrentValue = True),
+    dcc.Slider(
+        id='slider',
+        min=-90,
+        max=90,
+        step=10,
+        value=0),
     html.Br(),
-    html.A('Data Source', href=sourceurl),
-    ]
+
+    dcc.Graph(id='rta', figure={})
+
+])
+
+@app.callback([
+    Output('knob', 'value'),
+    Output('rta','figure')],
+    [Input('slider', 'value')]
 )
+def update_output(value):
+
+    dff = df.copy()
+
+    fig = px.line(dff, x="Frecuencia", y=str(value),log_x=True,labels={str(value):'Amplitud',"Frecuencia":'Frecuencia [Hz]'},template = 'plotly_dark')
+    #template = 'plotly_dark'
+    return value,fig
+
 
 if __name__ == '__main__':
     app.run_server()
