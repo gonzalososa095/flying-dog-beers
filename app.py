@@ -5,7 +5,7 @@ import plotly.graph_objs as go
 import pandas as pd
 
 
-df = pd.read_csv('https://github.com/gonzalososa095/flying-dog-beers/blob/master/data.csv')
+df = pd.read_csv('https://github.com/gonzalososa095/flying-dog-beers/blob/master/data.csv',engine='python')
 
 external_stylesheets = ['https://codepen.io/qpi65/pen/LYNOXJO.css']
 
